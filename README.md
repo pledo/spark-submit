@@ -7,13 +7,13 @@
 
 It's really simple, you should to run two commands
 
-###First, create the serviceAccount:
+### First, create the serviceAccount:
 ```sh
 $ kubectl create serviceaccount spark-submit
 ```
 
 
-####Second, create the ClusterRoleBinding:
+#### Second, create the ClusterRoleBinding:
 ```sh
 $  kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark-submit --namespace=default
 ```
