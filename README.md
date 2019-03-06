@@ -4,7 +4,7 @@
 This repository should provide a Dockerfile of the icpauloledo/spark-submit docker image, 
 a deployment.yaml and cronjob.yaml with an example to show a simple way to run the spark-submit with Kubernetes.
 
-### Getting start:
+### Getting started:
 
 - First, You need to create a serviceAccount on your Kubernetes to grant access to spark-submit to create pods.
 
