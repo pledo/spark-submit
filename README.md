@@ -40,5 +40,5 @@ the the drive pod and then the executor pod.
 kubectl create -f k8files/pod-cli.yaml 
 ```
 
-Thanks my friend @rodrigodelmonte []: https://github.com/rodrigodelmonte 
+Thanks my friend @rodrigodelmonte - https://github.com/rodrigodelmonte
 for help me with the spark docker image
