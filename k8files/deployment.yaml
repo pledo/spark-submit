@@ -38,33 +38,24 @@ spec:
             cpu: 1000m
           limits:
             cpu: 2000m
+
         env:
-          - name: IMAGE_TAG
-            value: latest
-          - name: PROJECT_NAME
-            value: batch-processor
+          - name: EXECUTOR_MEMORY
+            value: 1G
+          - name: DRIVER_MEMORY
+            value: 1G
+          - name: SPARK_IMAGE
+            value: icpauloledo/spark:v0.1
+          - name: K8_SERVICE_ACCOUNT
+            value: spark-submit
           - name: CLASS_NAME
-            value: .batch.BatchProcessor
-          - name: TAG_VERSION
-            value: "0.1"
+            value: org.apache.spark.examples.SparkPi
           - name: K8S_MASTER
-            value: k8s://https://api.k8s.my-cluster:443
+            value: k8s://https://api.k8s.stage.elinvar.tech:443
           - name: APP_NAME
-            value: batch-processor
-          - name: IMAGE_URL
-            value: my-registrys/analytics-batch-processor
-          - name: DB_URL
-            value: jdbc:postgresql://my-db:5432/datalake
-          - name: DB_USERNAME
-            value: my-db-user
-          - name: DB_PASSWORD
-            value: my-db-pass
-          - name: DB2_URL
-            value: jdbc:postgresql://my-db2:5432/db2-db
-          - name: DB2_USERNAME
-            value: my-db2-user
-          - name: DB2_PASSWORD
-            value: my-db2-pass
+            value: spark-pi
+          - name: AP_ARTIFACT
+            value: opt/spark/examples/jars/spark-examples_2.11-2.4.0.jar
           - name: SPARK_EXECUTOR_INSTANCES
             value: "1"
           - name: SPARK_K8S_DRIVER_CORE_LIMIT
@@ -73,6 +64,7 @@ spec:
             value: "1000m"
           - name: SPARK_K8S_EXECUTOR_REQUEST_CORES
             value: "1000m"
+
         command: ["spark-submit"]
         args:
         -  --master=$(K8S_MASTER)
@@ -83,15 +75,14 @@ spec:
         -  --conf=spark.kubernetes.driver.limit.cores=$(SPARK_K8S_DRIVER_CORE_LIMIT)
         -  --conf=spark.kubernetes.executor.request.cores=$(SPARK_K8S_EXECUTOR_REQUEST_CORES)
         -  --conf=spark.kubernetes.executor.limit.cores=$(SPARK_K8S_EXECUTOR_LIMIT_CORES)
-        -  --conf=spark.kubernetes.container.image=$(IMAGE_URL):$(IMAGE_TAG)
-        -  --conf=spark.kubernetes.driverEnv.ANALYTIC_URL=$(DB_URL)
-        -  --conf=spark.kubernetes.driverEnv.ANALYTIC_USERNAME=$(DB_USERNAME)
-        -  --conf=spark.kubernetes.driverEnv.ANALYTIC_PASSWORD=$(DB_PASSWORD)
-        -  --conf=spark.kubernetes.driverEnv.LANDING_URL=$(DB2_URL)
-        -  --conf=spark.kubernetes.driverEnv.LANDING_USERNAME=$(DB2_USERNAME)
-        -  --conf=spark.kubernetes.driverEnv.LANDING_PASSWORD=$(DB2_PASSWORD)
-        -  --conf=spark.kubernetes.authenticate.driver.serviceAccountName=spark-submit  <<<<< here you should put your serviceAccount
-        -  --executor-memory=2G
-        -  --driver-memory=2G
-        -  local:///$(PROJECT_NAME)/target/scala-2.11/$(PROJECT_NAME)-assembly-$(TAG_VERSION).jar
-
+        -  --conf=spark.kubernetes.container.image=$(SPARK_IMAGE)
+        -  --conf=spark.kubernetes.authenticate.driver.serviceAccountName=$(K8_SERVICE_ACCOUNT)
+        -  --executor-memory=$(EXECUTOR_MEMORY)
+        -  --driver-memory=$(DRIVER_MEMORY)
+        -  local:///$(AP_ARTIFACT)
+        # The service account name we created with the creating_service-account.sh. With that the pod will be able to
+        # start the driver and exetor pods
+        #-  --conf=spark.kubernetes.authenticate.driver.serviceAccountName=spark-submit
+        
+        # If you are using a dedicated instance group. I think It's a good idea when you are using K8s cronjobs
+        #-  --conf=spark.kubernetes.node.selector.nodeNamespace=analytics-spark-submit

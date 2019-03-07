@@ -2,8 +2,8 @@ apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   labels:
-    name: spark-submit
-  name: spark-submit
+    name: spark-submit-1
+  name: spark-submit-1
   namespace: default
 spec:
   concurrencyPolicy: Replace
@@ -17,46 +17,39 @@ spec:
         metadata:
           creationTimestamp: null
         spec:
+
           containers:
-          - name: spark-submit
+          - name: spark-submit-1
             image: icpauloledo/spark-submit:v0.1
             imagePullPolicy: Always
-            name: spark-submit
+            name: spark-submit-1
+
             env:
-            - name: IMAGE_TAG
-              value: latest
-            - name: PROJECT_NAME
-              value: batch-processor
-            - name: CLASS_NAME
-              value: batch.BatchProcessor
-            - name: TAG_VERSION
-              value: "0.1"
-            - name: K8S_MASTER
-              value: k8s://https://api.my-k8-cluster:443
-            - name: APP_NAME
-              value: batch-processor
-            - name: IMAGE_URL
-              value: my-docker-registry/batch-processor
-            - name: ANALYTIC_URL
-              value: jdbc:postgresql://my-postgresql:5432/analytics_datalake
-            - name: DB_USERNAME
-              value: my-db-user-name
-            - name: DB_PASSWORD
-              value: my-db-password
-            - name: DB2_URL
-              value: jdbc:postgresql://my-db:5432/my-db-url
-            - name: DB2_USERNAME
-              value: my-user-db2
-            - name: DB2_PASSWORD
-              value: my-db2-password
-            - name: SPARK_EXECUTOR_INSTANCES
-              value: "1"
-            - name: SPARK_K8S_DRIVER_CORE_LIMIT
-              value: "1000m"
-            - name: SPARK_K8S_EXECUTOR_LIMIT_CORES
-              value: "1000m"
-            - name: SPARK_K8S_EXECUTOR_REQUEST_CORES
-              value: "1000m"
+              - name: EXECUTOR_MEMORY
+                value: 1G
+              - name: DRIVER_MEMORY
+                value: 1G
+              - name: SPARK_IMAGE
+                value: icpauloledo/spark:v0.1
+              - name: K8_SERVICE_ACCOUNT
+                value: spark-submit
+              - name: CLASS_NAME
+                value: org.apache.spark.examples.SparkPi
+              - name: K8S_MASTER
+                value: k8s://https://api.k8s.stage.elinvar.tech:443
+              - name: APP_NAME
+                value: spark-pi
+              - name: AP_ARTIFACT
+                value: opt/spark/examples/jars/spark-examples_2.11-2.4.0.jar
+              - name: SPARK_EXECUTOR_INSTANCES
+                value: "1"
+              - name: SPARK_K8S_DRIVER_CORE_LIMIT
+                value: "1000m"
+              - name: SPARK_K8S_EXECUTOR_LIMIT_CORES
+                value: "1000m"
+              - name: SPARK_K8S_EXECUTOR_REQUEST_CORES
+                value: "1000m"
+
             command: ["spark-submit"]
             args:
             -  --master=$(K8S_MASTER)
@@ -67,24 +60,21 @@ spec:
             -  --conf=spark.kubernetes.driver.limit.cores=$(SPARK_K8S_DRIVER_CORE_LIMIT)
             -  --conf=spark.kubernetes.executor.request.cores=$(SPARK_K8S_EXECUTOR_REQUEST_CORES)
             -  --conf=spark.kubernetes.executor.limit.cores=$(SPARK_K8S_EXECUTOR_LIMIT_CORES)
-            -  --conf=spark.kubernetes.container.image=$(IMAGE_URL):$(IMAGE_TAG)
-            -  --conf=spark.kubernetes.driverEnv.ANALYTIC_URL=$(ANALYTIC_URL)
-            -  --conf=spark.kubernetes.driverEnv.ANALYTIC_USERNAME=$(ANALYTIC_USERNAME)
-            -  --conf=spark.kubernetes.driverEnv.ANALYTIC_PASSWORD=$(ANALYTIC_PASSWORD)
-            -  --conf=spark.kubernetes.driverEnv.LANDING_URL=$(LANDING_URL)
-            -  --conf=spark.kubernetes.driverEnv.LANDING_USERNAME=$(LANDING_USERNAME)
-            -  --conf=spark.kubernetes.driverEnv.LANDING_PASSWORD=$(LANDING_PASSWORD)
-            -  --conf=spark.kubernetes.authenticate.driver.serviceAccountName=spark-submit   <<< here you should use yout kubernetes serviceAccount
-            -  --executor-memory=2G
-            -  --driver-memory=2G
-            -  local:///$(PROJECT_NAME)/target/scala-2.11/$(PROJECT_NAME)-assembly-$(TAG_VERSION).jar
+            -  --conf=spark.kubernetes.container.image=$(SPARK_IMAGE)
+            -  --conf=spark.kubernetes.authenticate.driver.serviceAccountName=$(K8_SERVICE_ACCOUNT)
+            -  --executor-memory=$(EXECUTOR_MEMORY)
+            -  --driver-memory=$(DRIVER_MEMORY)
+            -  local:///$(AP_ARTIFACT)
+
             resources:
               limits:
                 cpu: 1000m
               requests:
                 cpu: 1000m
+
             terminationMessagePath: /dev/termination-log
             terminationMessagePolicy: File
+
           dnsPolicy: ClusterFirst
           nodeSelector:
             nodeNamespace: default
@@ -92,6 +82,7 @@ spec:
           schedulerName: default-scheduler
           securityContext: {}
           terminationGracePeriodSeconds: 30
+
   schedule: 15 13 * * *
   successfulJobsHistoryLimit: 0
   suspend: false

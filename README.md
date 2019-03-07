@@ -8,7 +8,9 @@ a deployment.yaml and cronjob.yaml with an example to show a simple way to run t
 
 - First, You need to create a serviceAccount on your Kubernetes to grant access to spark-submit to create pods.
 
-*source: https://spark.apache.org/docs/latest/running-on-kubernetes.html#rbac
+*source: 
+- https://spark.apache.org/docs/latest/running-on-kubernetes.html#docker-images
+- https://spark.apache.org/docs/latest/running-on-kubernetes.html#rbac
 
 It's really simple, you should to run two commands
 
@@ -37,3 +39,6 @@ the the drive pod and then the executor pod.
 ```sh
 kubectl create -f k8files/pod-cli.yaml 
 ```
+
+Thanks my friend @rodrigodelmonte []: https://github.com/rodrigodelmonte 
+for help me with the spark docker image
