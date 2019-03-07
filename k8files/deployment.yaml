@@ -51,7 +51,7 @@ spec:
           - name: CLASS_NAME
             value: org.apache.spark.examples.SparkPi
           - name: K8S_MASTER
-            value: k8s://https://api.k8s.stage.elinvar.tech:443
+            value: k8s://https://api.k8s.my-k8.tech:443
           - name: APP_NAME
             value: spark-pi
           - name: AP_ARTIFACT
